@@ -1,0 +1,1718 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מעקב עבירות בטיחות - בית מכבי רחובות</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --bg:#EEF1F5;
+    --surface:#FFFFFF;
+    --surface-2:#F5F7FA;
+    --border:#DAE0E8;
+    --text:#182230;
+    --text-muted:#5C6A7A;
+    --primary:#0B3B5C;
+    --primary-dark:#082C46;
+    --primary-tint:#E4EDF3;
+    --accent:#F2A900;
+    --accent-text:#3A2900;
+    --danger:#C0392B;
+    --danger-tint:#FBE7E5;
+    --success:#1F8A55;
+    --success-tint:#E4F5EC;
+    --sev-light-bg:#FFF3D6; --sev-light-text:#7A5900; --sev-light-border:#F2C94C;
+    --sev-medium-bg:#FCE3D2; --sev-medium-text:#8A3D00; --sev-medium-border:#E8590C;
+    --sev-severe-bg:#FADAD8; --sev-severe-text:#8E1E1E; --sev-severe-border:#C0392B;
+    --radius:12px;
+    --radius-sm:8px;
+    --shadow:0 1px 2px rgba(15,23,42,.06), 0 4px 14px rgba(15,23,42,.06);
+    --font-body:'Heebo', system-ui, sans-serif;
+    --font-num:'Roboto Mono', ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#10161F;
+      --surface:#182230;
+      --surface-2:#1E2A38;
+      --border:#2C3B4E;
+      --text:#E7ECF2;
+      --text-muted:#93A2B4;
+      --primary:#3E8FC4;
+      --primary-dark:#2B6E9E;
+      --primary-tint:#1B3040;
+      --accent:#F2B93B;
+      --accent-text:#221A00;
+      --danger:#E8695E;
+      --danger-tint:#3A2020;
+      --success:#4BC386;
+      --success-tint:#173226;
+      --sev-light-bg:#3A2E10; --sev-light-text:#F2C94C; --sev-light-border:#7A5900;
+      --sev-medium-bg:#3A2410; --sev-medium-text:#F2994A; --sev-medium-border:#8A3D00;
+      --sev-severe-bg:#3A1815; --sev-severe-text:#F19891; --sev-severe-border:#8E1E1E;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#10161F; --surface:#182230; --surface-2:#1E2A38; --border:#2C3B4E; --text:#E7ECF2;
+    --text-muted:#93A2B4; --primary:#3E8FC4; --primary-dark:#2B6E9E; --primary-tint:#1B3040;
+    --accent:#F2B93B; --accent-text:#221A00; --danger:#E8695E; --danger-tint:#3A2020;
+    --success:#4BC386; --success-tint:#173226;
+    --sev-light-bg:#3A2E10; --sev-light-text:#F2C94C; --sev-light-border:#7A5900;
+    --sev-medium-bg:#3A2410; --sev-medium-text:#F2994A; --sev-medium-border:#8A3D00;
+    --sev-severe-bg:#3A1815; --sev-severe-text:#F19891; --sev-severe-border:#8E1E1E;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    min-height:100vh;
+    line-height:1.5;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px 60px;}
+
+  header.app-header{
+    background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+    color:#fff;
+    padding:22px 16px 18px;
+    margin-bottom:18px;
+  }
+  header.app-header .inner{max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  header.app-header h1{margin:0;font-size:20px;font-weight:800;letter-spacing:0.2px;}
+  header.app-header p{margin:2px 0 0;font-size:13px;color:rgba(255,255,255,.78);}
+  .brand-mark{display:flex;align-items:center;gap:10px;}
+  .brand-mark .icon{font-size:26px;line-height:1;}
+
+  .stats-strip{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;
+  }
+  .stat-card{
+    background:rgba(255,255,255,.10);
+    border:1px solid rgba(255,255,255,.18);
+    border-radius:var(--radius-sm);
+    padding:10px 12px;
+  }
+  .stat-card .num{font-family:var(--font-num);font-size:19px;font-weight:700;}
+  .stat-card .lbl{font-size:11.5px;color:rgba(255,255,255,.75);margin-top:2px;}
+
+  nav.tabs{
+    display:flex;gap:6px;background:var(--surface);border:1px solid var(--border);
+    padding:5px;border-radius:999px;box-shadow:var(--shadow);
+    margin-bottom:20px;overflow-x:auto;
+  }
+  nav.tabs button{
+    flex:1;white-space:nowrap;border:none;background:transparent;color:var(--text-muted);
+    padding:10px 14px;border-radius:999px;font-family:inherit;font-size:14px;font-weight:600;
+    cursor:pointer;transition:background .15s ease, color .15s ease;
+  }
+  nav.tabs button.active{background:var(--primary);color:#fff;}
+  nav.tabs button:not(.active):hover{background:var(--surface-2);}
+
+  section.panel{display:none;}
+  section.panel.active{display:block;animation:fadein .18s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+  .card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:20px;box-shadow:var(--shadow);margin-bottom:16px;
+  }
+  .card h2{margin:0 0 4px;font-size:17px;font-weight:700;}
+  .card .card-sub{margin:0 0 16px;font-size:13px;color:var(--text-muted);}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  @media (max-width:680px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+  label.field{display:block;font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:6px;}
+  input[type=text],input[type=date],input[type=time],input[type=number],input[type=month],
+  select,textarea{
+    width:100%;font-family:inherit;font-size:14.5px;color:var(--text);
+    background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:10px 12px;outline:none;transition:border-color .15s ease, background .15s ease;
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--primary);background:var(--surface);}
+  textarea{resize:vertical;min-height:64px;}
+  .field-group{margin-bottom:14px;}
+  .hint{font-size:12px;color:var(--text-muted);margin-top:5px;}
+
+  .btn{
+    font-family:inherit;font-size:14px;font-weight:700;border:none;border-radius:var(--radius-sm);
+    padding:11px 18px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+    transition:transform .08s ease, box-shadow .12s ease, opacity .15s ease;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-primary:hover{background:var(--primary-dark);}
+  .btn-accent{background:var(--accent);color:var(--accent-text);}
+  .btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-danger{background:var(--danger-tint);color:var(--danger);}
+  .btn-danger:hover{opacity:.8;}
+  .btn-sm{padding:6px 11px;font-size:12.5px;border-radius:7px;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid transparent;}
+  .badge-light{background:var(--sev-light-bg);color:var(--sev-light-text);border-color:var(--sev-light-border);}
+  .badge-medium{background:var(--sev-medium-bg);color:var(--sev-medium-text);border-color:var(--sev-medium-border);}
+  .badge-severe{background:var(--sev-severe-bg);color:var(--sev-severe-text);border-color:var(--sev-severe-border);}
+
+  .suggest-box{
+    background:var(--primary-tint);border:1px dashed var(--primary);border-radius:var(--radius-sm);
+    padding:10px 12px;font-size:13px;color:var(--text);margin-top:8px;
+  }
+  .suggest-box b{font-family:var(--font-num);}
+
+  .photo-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+  .photo-thumb{position:relative;width:84px;height:84px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border);background:var(--surface-2);}
+  .photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;}
+  .photo-thumb .rm{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:12px;cursor:pointer;line-height:1;}
+  .photo-add-btn{width:84px;height:84px;border-radius:var(--radius-sm);border:1.5px dashed var(--border);background:var(--surface-2);color:var(--text-muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;cursor:pointer;font-family:inherit;}
+  .photo-add-btn:hover{border-color:var(--primary);color:var(--primary);}
+
+  .form-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+
+  .item-builder-box{border:1.5px dashed var(--border);border-radius:var(--radius);padding:16px;background:var(--surface-2);margin-top:4px;}
+  .report-items-list{display:flex;flex-direction:column;gap:8px;margin-bottom:6px;}
+  .report-item-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);flex-wrap:wrap;}
+  .report-item-row .ri-label{flex:1;font-size:13.5px;min-width:140px;}
+  .report-item-row .ri-fine{font-family:var(--font-num);font-weight:700;white-space:nowrap;}
+  .report-item-row .rm{background:var(--danger-tint);color:var(--danger);border:none;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:12px;flex-shrink:0;}
+
+  .chip-row{display:flex;gap:7px;flex-wrap:wrap;}
+  .chip{font-family:inherit;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-muted);cursor:pointer;}
+  .chip.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+
+  .filters-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end;}
+  .filters-row .field-group{margin-bottom:0;min-width:150px;flex:1;}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  thead th{text-align:right;font-size:12px;color:var(--text-muted);font-weight:700;padding:8px 10px;border-bottom:2px solid var(--border);white-space:nowrap;}
+  tbody td{padding:10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  tbody tr:hover{background:var(--surface-2);}
+  .cell-fine{font-family:var(--font-num);font-weight:700;}
+  .cell-muted{color:var(--text-muted);font-size:12.5px;}
+  .row-actions{display:flex;gap:6px;}
+  .thumb-mini{width:38px;height:38px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--border);}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--text-muted);}
+  .empty-state .em{font-size:34px;margin-bottom:8px;}
+  .table-scroll{overflow-x:auto;}
+
+  .cat-editor{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;overflow:hidden;}
+  .cat-editor-head{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--surface-2);flex-wrap:wrap;}
+  .cat-editor-head input[type=text]{flex:1;min-width:140px;font-weight:700;}
+  .cat-color-dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);padding:0;cursor:pointer;}
+  .cat-editor-body{padding:12px 14px;display:flex;flex-direction:column;gap:12px;}
+  .item-editor{border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;background:var(--surface);}
+  .item-editor-top{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+  .item-editor-top input[type=text]{flex:1;}
+  .item-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  @media (max-width:560px){.item-fields{grid-template-columns:1fr;}}
+
+  .toast-host{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;}
+  .toast{background:var(--text);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:13.5px;box-shadow:var(--shadow);animation:toastin .15s ease;}
+  .toast.err{background:var(--danger);color:#fff;}
+  .toast.ok{background:var(--success);color:#fff;}
+  @keyframes toastin{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  .modal-backdrop{position:fixed;inset:0;background:rgba(10,15,22,.72);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .modal-img{max-width:min(92vw,720px);max-height:86vh;border-radius:8px;}
+  .modal-close{position:absolute;top:18px;left:18px;background:rgba(255,255,255,.15);color:#fff;border:none;width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer;}
+  .modal-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);color:#fff;border:none;width:42px;height:42px;border-radius:50%;font-size:20px;cursor:pointer;}
+  .modal-nav.prev{right:18px;} .modal-nav.next{left:18px;}
+
+  .summary-bar-track{background:var(--surface-2);border-radius:6px;height:8px;overflow:hidden;margin-top:4px;}
+  .summary-bar-fill{height:100%;background:var(--primary);border-radius:6px;}
+
+  .banner{padding:12px 16px;border-radius:var(--radius-sm);background:var(--sev-medium-bg);color:var(--sev-medium-text);border:1px solid var(--sev-medium-border);font-size:13.5px;margin-bottom:16px;}
+
+  .kv-note{background:var(--surface-2);border-radius:var(--radius-sm);padding:8px 10px;font-size:12.5px;color:var(--text-muted);margin-top:6px;}
+
+  .help-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);}
+  .help-item:last-child{border-bottom:none;}
+  .help-num{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:15px;}
+  .help-title{font-weight:700;font-size:15px;margin-bottom:4px;}
+  .help-text{font-size:14px;color:var(--text-muted);line-height:1.65;}
+  .divider{height:1px;background:var(--border);margin:16px 0;}
+  .section-label{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:none;margin-bottom:10px;}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="inner">
+    <div class="brand-mark">
+      <span class="icon">🦺</span>
+      <div>
+        <h1>מעקב עבירות בטיחות - בית מכבי רחובות</h1>
+        <p>עומר הנדסה — כל הנתונים נשמרים במכשיר הזה בלבד, ללא צורך בחשבון או התחברות</p>
+      </div>
+    </div>
+  </div>
+  <div class="inner stats-strip" id="statsStrip">
+    <div class="stat-card"><div class="num" id="statMonthCount">–</div><div class="lbl">עבירות החודש</div></div>
+    <div class="stat-card"><div class="num" id="statMonthFines">–</div><div class="lbl">סך קנסות החודש</div></div>
+    <div class="stat-card"><div class="num" id="statTotalCount">–</div><div class="lbl">סה"כ דוחות במערכת</div></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="dbBanner"></div>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="new" class="active">דוח חדש</button>
+    <button data-tab="list">כל הדוחות</button>
+    <button data-tab="pricelist">מחירון</button>
+    <button data-tab="summary">סיכום חודשי</button>
+    <button data-tab="sync">גיבוי ושיתוף</button>
+    <button data-tab="help">איך זה עובד?</button>
+  </nav>
+
+  <!-- ===== NEW REPORT ===== -->
+  <section class="panel active" id="panel-new">
+    <div class="card">
+      <h2 id="formTitle">דיווח עבירת בטיחות</h2>
+      <p class="card-sub" id="formSub">ניתן לדווח בזמן אמת או בדיעבד — פשוט שנו את תאריך ושעת העבירה.</p>
+
+      <form id="violationForm">
+        <div class="grid2">
+          <div class="field-group">
+            <label class="field">תאריך העבירה *</label>
+            <input type="date" id="fDate" required>
+          </div>
+          <div class="field-group">
+            <label class="field">שעת העבירה *</label>
+            <input type="time" id="fTime" required>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="field-group">
+            <label class="field">שם הקבלן *</label>
+            <input type="text" id="fContractor" list="contractorList" placeholder="לדוגמה: קבלן משנה בע״מ" required>
+            <datalist id="contractorList"></datalist>
+          </div>
+          <div class="field-group">
+            <label class="field">שם העובד המעורב</label>
+            <input type="text" id="fEmployee" placeholder="שם פרטי ומשפחה">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field">מיקום העבירה באתר *</label>
+          <input type="text" id="fLocation" placeholder="לדוגמה: קומה 3, פיגום מזרחי" required>
+        </div>
+
+        <div class="field-group">
+          <label class="field">עבירות בטיחות בדוח זה *</label>
+          <div id="reportItemsList" class="report-items-list"></div>
+          <div class="hint" id="itemsEmptyHint">טרם נוספה עבירה — בנו עבירה למטה ולחצו "הוספת עבירה לדוח". ניתן להוסיף כמה עבירות שרוצים לאותו עובד/ביקור באותו דוח.</div>
+          <div class="hint" id="totalFineHint" style="display:none;font-weight:700;color:var(--primary);"></div>
+        </div>
+
+        <div class="item-builder-box">
+          <div class="section-label">בניית עבירה להוספה</div>
+          <div class="grid2">
+            <div class="field-group">
+              <label class="field">קטגוריית עבירה</label>
+              <select id="fCategory"></select>
+            </div>
+            <div class="field-group">
+              <label class="field">סוג העבירה</label>
+              <select id="fItem"></select>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field" id="fItemLabelCustomLabel">תיאור העבירה (ניתן לערוך את הנוסח לדוח הספציפי)</label>
+            <input type="text" id="fItemLabelCustom" placeholder="הנוסח שיודפס בדוח">
+          </div>
+
+          <div class="field-group" id="otherAddToPricelistRow" style="display:none;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;">
+              <input type="checkbox" id="otherAddToPricelist" style="width:auto;">
+              הוסיפו גם לצמיתות למחירון הקבוע (כדי שתופיע ברשימה גם בדוחות הבאים)
+            </label>
+          </div>
+
+          <div id="suggestBox" class="suggest-box" style="display:none;"></div>
+
+          <div class="field-group" style="margin-top:12px;">
+            <label class="field">סכום הקנס (₪)</label>
+            <input type="number" id="fFine" min="0" step="10">
+          </div>
+
+          <button type="button" class="btn btn-accent" id="btnAddItem">➕ הוספת עבירה זו לדוח</button>
+        </div>
+
+        <div class="field-group" style="margin-top:16px;">
+          <label class="field">שם המדווח</label>
+          <input type="text" id="fReporter" placeholder="שם מנהל העבודה / המדווח">
+        </div>
+
+        <div class="field-group">
+          <label class="field">פעולות שננקטו</label>
+          <div class="chip-row" id="actionChips"></div>
+          <textarea id="fActions" placeholder="לדוגמה: אזהרה בכתב לקבלן, הרחקת עובד מהאתר..." style="margin-top:8px;"></textarea>
+        </div>
+
+        <div class="field-group">
+          <label class="field">הערות</label>
+          <textarea id="fNotes" placeholder="פרטים נוספים ונסיבות העבירה..."></textarea>
+        </div>
+
+        <div class="field-group">
+          <label class="field">תיעוד חזותי (עד 3 תמונות)</label>
+          <div class="photo-row" id="photoRow">
+            <button type="button" class="photo-add-btn" id="btnCapture">📷<span>צילום</span></button>
+            <button type="button" class="photo-add-btn" id="btnGallery">🖼️<span>גלריה</span></button>
+          </div>
+          <input type="file" accept="image/*" capture="environment" id="fileCapture" class="sr-only">
+          <input type="file" accept="image/*" multiple id="fileGallery" class="sr-only">
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="btnSave">שמירת דוח</button>
+          <button type="button" class="btn btn-ghost" id="btnCancelEdit" style="display:none;">ביטול עריכה</button>
+          <button type="button" class="btn btn-ghost" id="btnReset">איפוס טופס</button>
+        </div>
+        <p class="hint" style="margin-top:10px;">💾 הדוח נשמר אוטומטית במכשיר הזה. כדי לשתף עם מכשירים אחרים, השתמשו בלשונית "גיבוי ושיתוף".</p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== LIST ===== -->
+  <section class="panel" id="panel-list">
+    <div class="card">
+      <h2>כל הדוחות</h2>
+      <p class="card-sub">סנן, בדוק ונהל את כל העבירות שתועדו באתר.</p>
+
+      <div class="filters-row">
+        <div class="field-group">
+          <label class="field">חודש</label>
+          <select id="filterMonth"><option value="">כל החודשים</option></select>
+        </div>
+        <div class="field-group">
+          <label class="field">קבלן / קבלן משנה</label>
+          <select id="filterContractor"><option value="">כל הקבלנים</option></select>
+        </div>
+        <div class="field-group">
+          <label class="field">חומרה</label>
+          <select id="filterCategory"><option value="">הכל</option></select>
+        </div>
+        <button class="btn btn-ghost" id="btnExportList">⬇ ייצוא ל-CSV</button>
+        <button class="btn btn-ghost" id="btnExportListPdf">🖨️ ייצוא ל-PDF</button>
+      </div>
+
+      <div class="table-scroll">
+        <table id="listTable">
+          <thead>
+            <tr>
+              <th>תאריך ושעה</th>
+              <th>קבלן</th>
+              <th>עובד</th>
+              <th>חומרה</th>
+              <th>סוג עבירה</th>
+              <th>מיקום</th>
+              <th>קנס</th>
+              <th>תמונה</th>
+              <th>פעולות</th>
+            </tr>
+          </thead>
+          <tbody id="listBody"></tbody>
+        </table>
+      </div>
+      <div id="listEmpty" class="empty-state" style="display:none;">
+        <div class="em">📋</div>
+        <div>עדיין לא תועדו דוחות. פתחו את לשונית "דוח חדש" כדי להתחיל.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PRICE LIST ===== -->
+  <section class="panel" id="panel-pricelist">
+    <div class="card">
+      <h2>מחירון עבירות בטיחות</h2>
+      <p class="card-sub">ערכו קטגוריות, סוגי עבירות וטווחי קנסות. המחירון נשמר במכשיר זה בלבד, והשינויים ישפיעו על דוחות עתידיים בלבד.</p>
+      <div id="categoriesEditor"></div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" id="btnAddCategory">+ הוספת קטגוריה</button>
+        <button class="btn btn-primary" id="btnSavePriceList">שמירת מחירון</button>
+        <button class="btn btn-ghost" id="btnResetPriceList">שחזור ברירת מחדל</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SUMMARY ===== -->
+  <section class="panel" id="panel-summary">
+    <div class="card">
+      <h2>סיכום חודשי</h2>
+      <p class="card-sub">סך הקנסות וכמות העבירות לכל קבלן, לצורך חיוב וסיכום בסוף החודש.</p>
+      <div class="filters-row">
+        <div class="field-group">
+          <label class="field">בחירת חודש</label>
+          <input type="month" id="summaryMonth">
+        </div>
+        <button class="btn btn-ghost" id="btnExportSummary">⬇ ייצוא סיכום ל-CSV</button>
+      </div>
+      <div class="table-scroll">
+        <table id="summaryTable">
+          <thead>
+            <tr>
+              <th>קבלן</th>
+              <th>קלות</th>
+              <th>בינוניות</th>
+              <th>חמורות</th>
+              <th>סה"כ עבירות</th>
+              <th>סה"כ לתשלום</th>
+              <th style="min-width:120px;">יחסית</th>
+            </tr>
+          </thead>
+          <tbody id="summaryBody"></tbody>
+        </table>
+      </div>
+      <div id="summaryEmpty" class="empty-state" style="display:none;">
+        <div class="em">📊</div>
+        <div>אין עבירות מתועדות בחודש שנבחר.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SYNC ===== -->
+  <section class="panel" id="panel-sync">
+    <div class="card">
+      <h2>גיבוי ושיתוף נתונים</h2>
+      <p class="card-sub">הכלי הזה שומר הכול במכשיר שבו אתם משתמשים בו כרגע — אין שרת משותף. כדי לאחד נתונים ממספר מכשירים (למשל כמה מנהלי עבודה), ייצאו קובץ גיבוי מכל מכשיר וייבאו את כולם למכשיר אחד.</p>
+
+      <div class="grid2">
+        <div>
+          <h2 style="font-size:15px;">ייצוא (מהמכשיר הזה)</h2>
+          <p class="card-sub">מוריד קובץ אחד עם כל הדוחות, המחירון והתמונות מהמכשיר הזה.</p>
+          <button class="btn btn-primary" id="btnExportBackup">⬇ ייצוא גיבוי מלא</button>
+        </div>
+        <div>
+          <h2 style="font-size:15px;">ייבוא (למכשיר הזה)</h2>
+          <p class="card-sub">טוענים קובץ גיבוי שיוצא ממכשיר אחר, ומוסיפים את הדוחות שבו לרשימה הקיימת (ללא כפילויות).</p>
+          <input type="file" id="importFile" accept="application/json">
+          <div id="importStatus" class="hint" style="margin-top:8px;"></div>
+        </div>
+      </div>
+      <div class="hint" style="margin-top:14px;">שימו לב: ייבוא לא דורס את המחירון הקיים במכשיר זה — רק מוסיף דוחות חדשים.</div>
+    </div>
+  </section>
+
+  <!-- ===== HELP ===== -->
+  <section class="panel" id="panel-help">
+    <div class="card">
+      <h2>איך זה עובד — בקצרה</h2>
+      <p class="card-sub">אין צורך בשום הרשאה נוספת לתיקיות ענן או ל-OneDrive. הכלי עומד בפני עצמו.</p>
+
+      <div class="help-item">
+        <div class="help-num">1</div>
+        <div>
+          <div class="help-title">איך מדווחים על עבירה?</div>
+          <div class="help-text">נכנסים ללשונית <b>"דוח חדש"</b>, ממלאים תאריך, קבלן, מיקום וסוג עבירה. הקנס מוצע אוטומטית לפי המחירון, וניתן לצלם ולצרף תמונה ישירות מהטלפון. לוחצים "שמירת דוח" — זהו, סיימתם.</div>
+        </div>
+      </div>
+      <div class="help-item">
+        <div class="help-num">2</div>
+        <div>
+          <div class="help-title">איפה המידע נשמר?</div>
+          <div class="help-text">המידע נשמר <b>בדפדפן של המכשיר הזה בלבד</b> (לא בענן ולא אצל Claude) — לכן חשוב לא לנקות "היסטוריית גלישה" בלי לייצא גיבוי קודם. כדי לשתף בין כמה מכשירים, השתמשו בלשונית <b>"גיבוי ושיתוף"</b>.</div>
+        </div>
+      </div>
+      <div class="help-item">
+        <div class="help-num">3</div>
+        <div>
+          <div class="help-title">מי יכול לערוך?</div>
+          <div class="help-text">כל מי שמשתמש במכשיר הזה יכול להוסיף, לערוך ולמחוק דוחות בלשונית <b>"כל הדוחות"</b> — בלי חשבון, בלי התחברות. אם כמה אנשים מדווחים ממכשירים שונים, אחדו את הנתונים דרך "גיבוי ושיתוף".</div>
+        </div>
+      </div>
+      <div class="help-item">
+        <div class="help-num">4</div>
+        <div>
+          <div class="help-title">איך מוציאים דוח לקבלן או לתיק אישי?</div>
+          <div class="help-text">בלשונית "כל הדוחות" יש כפתור <b>PDF</b> ליד כל שורה — זה מפיק דוח מודפס בעיצוב רשמי (כמו דוח חנייה) שאפשר לשמור, להדפיס או לשלוח. את הקובץ אפשר להעלות ידנית לכל תיקייה או מערכת קיימת אצלכם, כולל השייר-פוינט — בלי לחבר שום הרשאה חדשה לכלי.</div>
+        </div>
+      </div>
+      <div class="help-item">
+        <div class="help-num">5</div>
+        <div>
+          <div class="help-title">איך משתפים עם הצוות?</div>
+          <div class="help-text">שולחים לצוות את הקישור לכלי (הוא פתוח לכולם, בלי חשבון). כל אחד מדווח מהמכשיר שלו, ומעת לעת מייצאים ומאחדים גיבויים דרך לשונית "גיבוי ושיתוף" כדי לקבל תמונה מלאה.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="toast-host" id="toastHost"></div>
+<div id="modalHost"></div>
+<div id="pdfRenderHost" style="position:fixed;left:-99999px;top:0;z-index:-1;"></div>
+
+<script>
+/* ============================= DATA & STATE ============================= */
+let priceList = null;
+let violations = [];
+let editorPriceList = null;
+let editingViolationId = null;
+let pendingPhotos = [];      // {file, previewUrl} - newly added, not yet uploaded
+let keptPhotoIds = [];       // when editing: existing photoAssetIds kept
+let currentItems = [];       // violation line-items staged for the report being built/edited
+let lightboxList = [];
+let lightboxIndex = 0;
+
+const DEFAULT_PRICE_LIST = {
+  categories: [
+    {
+      key: "light", label: "הפרות קלות", subtitle: "ציוד מגן ומשמעת באתר", color: "#F2A900",
+      items: [
+        { key: "no_ppe_basic", label: "עבודה ללא קסדת מגן / נעלי בטיחות / משקפי מגן", type: "range", min: 100, max: 300 },
+        { key: "no_vest", label: "עבודה ללא ביגוד מתאים או אפוד זוהר", type: "range", min: 150, max: 200 },
+        { key: "messy_station", label: "חוסר סדר וניקיון בעמדה", type: "range", min: 250, max: 500 }
+      ]
+    },
+    {
+      key: "medium", label: "הפרות בינוניות", subtitle: "ציוד פגום והיעדר הדרכות", color: "#E8590C",
+      items: [
+        { key: "untrained_worker", label: "הכנסת עובד שלא עבר הדרכת בטיחות / סקר סיכונים", type: "occurrence", occurrenceAmounts: [1000], occurrenceNote: "בפעם הראשונה 1,000 ₪; הקנס עולה בכל הפרה חוזרת של אותו עובד." },
+        { key: "faulty_electric", label: "עבודה עם ציוד חשמלי מטלטל לא בדוק או פגום", type: "range", min: 500, max: 500 },
+        { key: "no_lifting_cert", label: "עבודה עם כלי עבודה / אביזרי הרמה ללא תסקיר בתוקף", type: "range", min: 1000, max: 1000 }
+      ]
+    },
+    {
+      key: "severe", label: "הפרות חמורות", subtitle: "סכנת חיים מידית", color: "#C0392B",
+      items: [
+        { key: "height_no_harness", label: "עבודה בגובה ללא שימוש בציוד מגן אישי (רתמה מחוברת)", type: "range", min: 1000, max: 2500 },
+        { key: "safety_appendix", label: "אי עמידה כללית בתנאי נספח הבטיחות שעליו חתם הקבלן", type: "occurrence", occurrenceAmounts: [1000, 1500, 2000], occurrenceNote: "החל מהפרה הרביעית: הוצאה מיידית של קבלן המשנה ועובדיו מהאתר וזימון לשימוע." }
+      ]
+    }
+  ]
+};
+
+/* ============================= UTIL ============================= */
+function el(id){ return document.getElementById(id); }
+function fmtMoney(n){ n = Number(n)||0; return "₪" + n.toLocaleString("he-IL"); }
+function toast(msg, kind){
+  const host = el('toastHost');
+  const t = document.createElement('div');
+  t.className = 'toast' + (kind ? ' '+kind : '');
+  t.textContent = msg;
+  host.appendChild(t);
+  setTimeout(()=>{ t.remove(); }, 3400);
+}
+function genKey(prefix){ return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function catByKey(key){ return (priceList?.categories||[]).find(c=>c.key===key); }
+function itemByKeys(catKey, itemKey){ const c = catByKey(catKey); return c ? (c.items||[]).find(i=>i.key===itemKey) : null; }
+function violationItems(v){
+  if(Array.isArray(v.items) && v.items.length) return v.items;
+  if(v.itemKey) return [{ categoryKey:v.categoryKey, categoryLabel:v.categoryLabel, itemKey:v.itemKey, itemLabel:v.itemLabel, fineAmount:v.fineAmount }];
+  return [];
+}
+function severityBadgeClass(catKey){
+  if(catKey==='light') return 'badge-light';
+  if(catKey==='medium') return 'badge-medium';
+  if(catKey==='severe') return 'badge-severe';
+  return 'badge-light';
+}
+function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10); }
+function nowTimeStr(){ const d=new Date(); return d.toTimeString().slice(0,5); }
+function monthKeyOf(dateStr){ return (dateStr||'').slice(0,7); }
+function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ============================= LOCAL STORAGE + INDEXEDDB ============================= */
+const LS_VIOLATIONS_KEY = 'safety_standalone_violations_v1';
+const LS_PRICELIST_KEY = 'safety_standalone_pricelist_v1';
+
+function uid(){
+  if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'id_' + Date.now().toString(36) + Math.random().toString(36).slice(2,10);
+}
+
+function openPhotoDB(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open('safetyStandalonePhotos', 1);
+    req.onupgradeneeded = ()=> req.result.createObjectStore('photos');
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function savePhotoBlob(id, blob){
+  const idb = await openPhotoDB();
+  return new Promise((resolve, reject)=>{
+    const tx = idb.transaction('photos','readwrite');
+    tx.objectStore('photos').put(blob, id);
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+async function getPhotoBlob(id){
+  const idb = await openPhotoDB();
+  return new Promise((resolve, reject)=>{
+    const tx = idb.transaction('photos','readonly');
+    const req = tx.objectStore('photos').get(id);
+    req.onsuccess = ()=>resolve(req.result || null);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function deletePhotoBlob(id){
+  try{
+    const idb = await openPhotoDB();
+    await new Promise((resolve,reject)=>{
+      const tx = idb.transaction('photos','readwrite');
+      tx.objectStore('photos').delete(id);
+      tx.oncomplete = ()=>resolve();
+      tx.onerror = ()=>reject(tx.error);
+    });
+  }catch(e){ /* ignore */ }
+}
+async function getPhotoDataUrl(id){
+  const blob = await getPhotoBlob(id);
+  if(!blob) return null;
+  return new Promise(res=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result);
+    r.onerror = ()=>res(null);
+    r.readAsDataURL(blob);
+  });
+}
+const photoUrlCache = {};
+async function bindPhotoImages(container){
+  const imgs = container.querySelectorAll('img[data-photo-id]');
+  for(const img of imgs){
+    const id = img.dataset.photoId;
+    if(!id) continue;
+    if(photoUrlCache[id]){ img.src = photoUrlCache[id]; continue; }
+    try{
+      const blob = await getPhotoBlob(id);
+      if(blob){
+        const url = URL.createObjectURL(blob);
+        photoUrlCache[id] = url;
+        img.src = url;
+      }
+    }catch(e){ /* ignore */ }
+  }
+}
+
+function loadViolationsLocal(){
+  try{
+    const raw = localStorage.getItem(LS_VIOLATIONS_KEY);
+    violations = raw ? JSON.parse(raw) : [];
+  }catch(e){ violations = []; }
+  violations.sort((a,b)=> (b.violationDateTime||'').localeCompare(a.violationDateTime||''));
+}
+function saveViolationsLocal(){
+  try{ localStorage.setItem(LS_VIOLATIONS_KEY, JSON.stringify(violations)); }
+  catch(e){ toast('שגיאה בשמירה — יתכן שאחסון הדפדפן מלא', 'err'); }
+}
+function loadPriceListLocal(){
+  try{
+    const raw = localStorage.getItem(LS_PRICELIST_KEY);
+    priceList = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_PRICE_LIST));
+  }catch(e){ priceList = JSON.parse(JSON.stringify(DEFAULT_PRICE_LIST)); }
+}
+function savePriceListLocal(){
+  try{ localStorage.setItem(LS_PRICELIST_KEY, JSON.stringify(priceList)); }
+  catch(e){ toast('שגיאה בשמירת המחירון', 'err'); }
+}
+
+function initLocalData(){
+  el('dbBanner').innerHTML = '<div class="banner">🔒 גרסה עצמאית — כל הנתונים נשמרים בדפדפן של המכשיר הזה בלבד, בלי חשבון ובלי שרת. לאיחוד נתונים בין כמה מכשירים, השתמשו בלשונית "גיבוי ושיתוף".</div>';
+  loadPriceListLocal();
+  loadViolationsLocal();
+  renderCategoryDropdown();
+  renderReportsList();
+  renderSummary();
+  updateStatsStrip();
+  populateContractorDatalist();
+  populateMonthFilter();
+}
+
+/* ============================= TABS ============================= */
+document.querySelectorAll('#tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=> switchTab(btn.dataset.tab));
+});
+function switchTab(name){
+  document.querySelectorAll('#tabs button').forEach(b=> b.classList.toggle('active', b.dataset.tab===name));
+  document.querySelectorAll('section.panel').forEach(p=> p.classList.toggle('active', p.id === 'panel-'+name));
+  if(name==='pricelist'){
+    editorPriceList = JSON.parse(JSON.stringify(priceList||DEFAULT_PRICE_LIST));
+    editorDirty = false;
+    renderPriceListEditor();
+  }
+  if(name==='summary'){ renderSummary(); }
+  if(name==='list'){ renderReportsList(); }
+}
+
+/* ============================= STATS STRIP ============================= */
+function updateStatsStrip(){
+  const thisMonth = new Date().toISOString().slice(0,7);
+  const monthReports = violations.filter(v=> monthKeyOf(v.violationDate) === thisMonth);
+  let itemCount = 0, monthFines = 0;
+  for(const v of monthReports){
+    for(const it of violationItems(v)){ itemCount++; monthFines += Number(it.fineAmount)||0; }
+  }
+  el('statMonthCount').textContent = itemCount;
+  el('statMonthFines').textContent = fmtMoney(monthFines);
+  el('statTotalCount').textContent = violations.length;
+}
+
+/* ============================= NEW REPORT FORM ============================= */
+function renderCategoryDropdown(){
+  const catSel = el('fCategory');
+  const filterCat = el('filterCategory');
+  const cats = (priceList?.categories)||[];
+  const prevCat = catSel.value;
+  catSel.innerHTML = cats.map(c=>`<option value="${escapeHtml(c.key)}">${escapeHtml(c.label)}</option>`).join('');
+  if(cats.some(c=>c.key===prevCat)) catSel.value = prevCat;
+  renderItemDropdown();
+
+  filterCat.innerHTML = '<option value="">הכל</option>' + cats.map(c=>`<option value="${escapeHtml(c.key)}">${escapeHtml(c.label)}</option>`).join('');
+}
+function renderItemDropdown(){
+  const catKey = el('fCategory').value;
+  const cat = catByKey(catKey);
+  const itemSel = el('fItem');
+  const items = cat ? (cat.items||[]) : [];
+  itemSel.innerHTML = items.map(i=>`<option value="${escapeHtml(i.key)}">${escapeHtml(i.label)}</option>`).join('')
+    + '<option value="__other__">אחר (הקלדה חופשית)</option>';
+  syncItemLabelCustom();
+  updateOtherModeUI();
+  updateSuggestion();
+}
+function updateOtherModeUI(){
+  const isOther = el('fItem').value === '__other__';
+  el('otherAddToPricelistRow').style.display = isOther ? 'block' : 'none';
+  el('fItemLabelCustomLabel').textContent = isOther ? 'תיאור העבירה (חובה) *' : 'תיאור העבירה (ניתן לערוך את הנוסח לדוח הספציפי)';
+  el('fItemLabelCustom').placeholder = isOther ? 'תארו כאן את סוג העבירה' : 'הנוסח שיודפס בדוח';
+  if(!isOther) el('otherAddToPricelist').checked = false;
+}
+function syncItemLabelCustom(){
+  const item = itemByKeys(el('fCategory').value, el('fItem').value);
+  if(item && (!el('fItemLabelCustom').dataset.touched || el('fItemLabelCustom').dataset.touched!=='1')){
+    el('fItemLabelCustom').value = item.label;
+  }
+  if(el('fItem').value === '__other__' && el('fItemLabelCustom').dataset.touched!=='1'){
+    el('fItemLabelCustom').value = '';
+  }
+}
+el('fItemLabelCustom').addEventListener('input', ()=>{ el('fItemLabelCustom').dataset.touched = '1'; });
+el('fCategory').addEventListener('change', renderItemDropdown);
+el('fItem').addEventListener('change', ()=>{ el('fItemLabelCustom').dataset.touched='0'; syncItemLabelCustom(); updateOtherModeUI(); updateSuggestion(); });
+el('fContractor').addEventListener('input', updateSuggestion);
+
+const ACTION_CHIPS = ['אזהרה בעל פה','אזהרה בכתב לקבלן','הרחקת עובד מהאתר','הרחקת קבלן מהאתר','עצירת עבודה זמנית','חידוש הדרכת בטיחות'];
+function renderActionChips(){
+  const current = (el('fActions').value||'').split(';').map(s=>s.trim()).filter(Boolean);
+  el('actionChips').innerHTML = ACTION_CHIPS.map(c=>
+    `<button type="button" class="chip ${current.includes(c)?'active':''}" onclick="toggleActionChip('${c.replace(/'/g,"\\'")}')">${c}</button>`
+  ).join('');
+}
+function toggleActionChip(label){
+  let current = (el('fActions').value||'').split(';').map(s=>s.trim()).filter(Boolean);
+  if(current.includes(label)) current = current.filter(c=>c!==label);
+  else current.push(label);
+  el('fActions').value = current.join('; ');
+  renderActionChips();
+}
+window.toggleActionChip = toggleActionChip;
+el('fActions').addEventListener('input', renderActionChips);
+
+function currentOccurrenceNumber(contractorName, itemKey){
+  const norm = (contractorName||'').trim().toLowerCase();
+  if(!norm) return 1;
+  let count = 0;
+  for(const v of violations){
+    if(v.id === editingViolationId) continue;
+    if((v.contractorName||'').trim().toLowerCase() !== norm) continue;
+    for(const it of violationItems(v)){ if(it.itemKey===itemKey) count++; }
+  }
+  for(const it of currentItems){ if(it.itemKey===itemKey) count++; }
+  return count + 1;
+}
+function updateSuggestion(){
+  const catKey = el('fCategory').value;
+  const itemKey = el('fItem').value;
+  const item = itemByKeys(catKey, itemKey);
+  const box = el('suggestBox');
+  if(!item){ box.style.display='none'; return; }
+
+  if(item.type === 'occurrence'){
+    const occ = currentOccurrenceNumber(el('fContractor').value, itemKey);
+    const amounts = item.occurrenceAmounts||[0];
+    const idx = Math.min(occ-1, amounts.length-1);
+    const suggested = amounts[idx] ?? 0;
+    box.style.display='block';
+    box.innerHTML = `הפרה מס׳ <b>${occ}</b> עבור קבלן/עבירה זו — קנס מוצע: <b>${fmtMoney(suggested)}</b>` +
+      (item.occurrenceNote ? `<div class="kv-note">${escapeHtml(item.occurrenceNote)}</div>` : '');
+    if(!editingViolationId || (editingViolationId && Number(el('fFine').value)===0) || el('fFine').dataset.auto==='1'){
+      el('fFine').value = suggested;
+      el('fFine').dataset.auto = '1';
+    }
+  } else {
+    box.style.display='block';
+    box.innerHTML = `טווח קנס לעבירה זו: <b>${fmtMoney(item.min)}</b> – <b>${fmtMoney(item.max)}</b>`;
+    if(el('fFine').dataset.auto==='1' || !el('fFine').value){
+      el('fFine').value = item.min;
+      el('fFine').dataset.auto = '1';
+    }
+  }
+}
+el('fFine').addEventListener('input', ()=>{ el('fFine').dataset.auto = '0'; });
+
+/* ---- multi-item builder ---- */
+function renderReportItemsList(){
+  const host = el('reportItemsList');
+  const emptyHint = el('itemsEmptyHint');
+  emptyHint.style.display = currentItems.length ? 'none' : 'block';
+  host.innerHTML = currentItems.map((it, idx)=> `
+    <div class="report-item-row">
+      <span class="badge ${severityBadgeClass(it.categoryKey)}">${escapeHtml(it.categoryLabel||'')}</span>
+      <span class="ri-label">${escapeHtml(it.itemLabel||'')}</span>
+      <span class="ri-fine">${fmtMoney(it.fineAmount)}</span>
+      <button type="button" class="rm" onclick="removeCurrentItem(${idx})">✕</button>
+    </div>`).join('');
+  const totalHint = el('totalFineHint');
+  if(currentItems.length){
+    const total = currentItems.reduce((s,it)=>s+(Number(it.fineAmount)||0),0);
+    totalHint.style.display = 'block';
+    totalHint.textContent = `סה"כ קנס לדוח זה: ${fmtMoney(total)} (${currentItems.length} עבירות)`;
+  } else {
+    totalHint.style.display = 'none';
+  }
+}
+function removeCurrentItem(idx){ currentItems.splice(idx,1); renderReportItemsList(); updateSuggestion(); }
+window.removeCurrentItem = removeCurrentItem;
+
+el('btnAddItem').addEventListener('click', ()=>{
+  const catKey = el('fCategory').value;
+  const itemKey = el('fItem').value;
+  const cat = catByKey(catKey);
+  if(!cat){ toast('יש לבחור קטגוריית עבירה', 'err'); return; }
+
+  let resolvedItemKey, itemLabel;
+  const fine = Number(el('fFine').value);
+  if(isNaN(fine) || fine < 0){ toast('סכום קנס לא תקין', 'err'); return; }
+
+  if(itemKey === '__other__'){
+    itemLabel = el('fItemLabelCustom').value.trim();
+    if(!itemLabel){ toast('יש לרשום את תיאור העבירה', 'err'); return; }
+    if(el('otherAddToPricelist').checked){
+      const newKey = genKey('item');
+      cat.items = cat.items || [];
+      cat.items.push({ key:newKey, label:itemLabel, type:'range', min:fine, max:fine });
+      savePriceListLocal();
+      resolvedItemKey = newKey;
+      toast('העבירה נוספה גם למחירון הקבוע', 'ok');
+    } else {
+      resolvedItemKey = 'other_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    }
+  } else {
+    const item = itemByKeys(catKey, itemKey);
+    if(!item){ toast('יש לבחור סוג עבירה', 'err'); return; }
+    resolvedItemKey = itemKey;
+    itemLabel = el('fItemLabelCustom').value.trim() || item.label;
+  }
+
+  currentItems.push({
+    categoryKey: catKey,
+    categoryLabel: cat.label,
+    itemKey: resolvedItemKey,
+    itemLabel: itemLabel,
+    fineAmount: fine
+  });
+  renderReportItemsList();
+  el('fItemLabelCustom').value = '';
+  el('fItemLabelCustom').dataset.touched = '0';
+  el('otherAddToPricelist').checked = false;
+  el('fFine').value = '';
+  el('fFine').dataset.auto = '1';
+  renderCategoryDropdown();
+  el('fCategory').value = catKey;
+  renderItemDropdown();
+  toast('העבירה נוספה לדוח', 'ok');
+});
+
+/* ---- photo capture ---- */
+el('btnCapture').addEventListener('click', ()=> el('fileCapture').click());
+el('btnGallery').addEventListener('click', ()=> el('fileGallery').click());
+el('fileCapture').addEventListener('change', (e)=> addPendingPhotos(e.target.files));
+el('fileGallery').addEventListener('change', (e)=> addPendingPhotos(e.target.files));
+
+function totalPhotoCount(){ return pendingPhotos.length + keptPhotoIds.length; }
+function addPendingPhotos(fileList){
+  const files = Array.from(fileList||[]);
+  for(const f of files){
+    if(totalPhotoCount() >= 3){ toast('ניתן לצרף עד 3 תמונות לדוח', 'err'); break; }
+    if(!f.type.startsWith('image/')) continue;
+    const url = URL.createObjectURL(f);
+    pendingPhotos.push({ file: f, previewUrl: url });
+  }
+  el('fileCapture').value = '';
+  el('fileGallery').value = '';
+  renderPhotoRow();
+}
+function renderPhotoRow(){
+  const row = el('photoRow');
+  const keptHtml = keptPhotoIds.map((id, idx)=> `
+    <div class="photo-thumb" data-kept-idx="${idx}">
+      <img data-photo-id="${id}" alt="תמונה קיימת" onclick="openLightboxFromCurrent(${idx})">
+      <button type="button" class="rm" onclick="removeKeptPhoto(${idx})">✕</button>
+    </div>`).join('');
+  const pendingHtml = pendingPhotos.map((p, idx)=> `
+    <div class="photo-thumb" data-pending-idx="${idx}">
+      <img src="${p.previewUrl}" alt="תמונה חדשה">
+      <button type="button" class="rm" onclick="removePendingPhoto(${idx})">✕</button>
+    </div>`).join('');
+  const addBtns = `
+    <button type="button" class="photo-add-btn" id="btnCapture">📷<span>צילום</span></button>
+    <button type="button" class="photo-add-btn" id="btnGallery">🖼️<span>גלריה</span></button>`;
+  row.innerHTML = keptHtml + pendingHtml + (totalPhotoCount() < 3 ? addBtns : '');
+  if(totalPhotoCount() < 3){
+    el('btnCapture').addEventListener('click', ()=> el('fileCapture').click());
+    el('btnGallery').addEventListener('click', ()=> el('fileGallery').click());
+  }
+  bindPhotoImages(row);
+}
+function removePendingPhoto(idx){ pendingPhotos.splice(idx,1); renderPhotoRow(); }
+function removeKeptPhoto(idx){ keptPhotoIds.splice(idx,1); renderPhotoRow(); }
+window.removePendingPhoto = removePendingPhoto;
+window.removeKeptPhoto = removeKeptPhoto;
+
+/* ---- form submit ---- */
+el('violationForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+
+  if(!currentItems.length){ toast('יש להוסיף לפחות עבירה אחת לדוח', 'err'); return; }
+
+  const date = el('fDate').value, time = el('fTime').value;
+  if(!date || !time){ toast('יש להזין תאריך ושעה', 'err'); return; }
+  const contractor = el('fContractor').value.trim();
+  if(!contractor){ toast('יש להזין שם קבלן', 'err'); return; }
+  const location = el('fLocation').value.trim();
+  if(!location){ toast('יש להזין מיקום', 'err'); return; }
+
+  const btn = el('btnSave');
+  btn.disabled = true; btn.textContent = 'שומר...';
+
+  try{
+    let photoAssetIds = [...keptPhotoIds];
+    for(const p of pendingPhotos){
+      const newId = uid();
+      await savePhotoBlob(newId, p.file);
+      photoAssetIds.push(newId);
+    }
+
+    const totalFine = currentItems.reduce((s,it)=>s+(Number(it.fineAmount)||0),0);
+    const data = {
+      violationDate: date,
+      violationTime: time,
+      violationDateTime: `${date}T${time}:00`,
+      contractorName: contractor,
+      employeeName: el('fEmployee').value.trim(),
+      location: location,
+      items: JSON.parse(JSON.stringify(currentItems)),
+      fineAmount: totalFine,
+      reporterName: el('fReporter').value.trim(),
+      actionsTaken: el('fActions').value.trim(),
+      notes: el('fNotes').value.trim(),
+      photoAssetIds: photoAssetIds,
+      updatedAt: new Date().toISOString()
+    };
+
+    if(editingViolationId){
+      const idx = violations.findIndex(v=>v.id===editingViolationId);
+      if(idx>-1){
+        data.id = editingViolationId;
+        data.createdAt = violations[idx].createdAt || new Date().toISOString();
+        violations[idx] = data;
+      }
+      toast('הדוח עודכן בהצלחה', 'ok');
+    } else {
+      data.id = uid();
+      data.createdAt = new Date().toISOString();
+      violations.unshift(data);
+      toast('הדוח נשמר בהצלחה', 'ok');
+    }
+    saveViolationsLocal();
+
+    if(el('fReporter').value.trim()){
+      try{ localStorage.setItem('safety_last_reporter', el('fReporter').value.trim()); }catch(e){}
+    }
+
+    resetForm();
+    renderReportsList();
+    renderSummary();
+    updateStatsStrip();
+    populateContractorDatalist();
+    populateMonthFilter();
+    switchTab('list');
+  }catch(err){
+    console.error(err);
+    toast('שגיאה בשמירת הדוח: ' + (err?.message || ''), 'err');
+  }finally{
+    btn.disabled = false; btn.textContent = editingViolationId ? 'עדכון דוח' : 'שמירת דוח';
+  }
+});
+
+function resetForm(){
+  editingViolationId = null;
+  pendingPhotos = [];
+  keptPhotoIds = [];
+  currentItems = [];
+  el('violationForm').reset();
+  el('fDate').value = todayStr();
+  el('fTime').value = nowTimeStr();
+  try{
+    const lastReporter = localStorage.getItem('safety_last_reporter');
+    if(lastReporter) el('fReporter').value = lastReporter;
+  }catch(e){}
+  el('fFine').dataset.auto = '1';
+  el('fItemLabelCustom').value = '';
+  el('fItemLabelCustom').dataset.touched = '0';
+  el('fActions').value = '';
+  renderActionChips();
+  renderCategoryDropdown();
+  renderReportItemsList();
+  renderPhotoRow();
+  el('suggestBox').style.display = 'none';
+  el('formTitle').textContent = 'דיווח עבירת בטיחות';
+  el('formSub').textContent = 'ניתן לדווח בזמן אמת או בדיעבד — פשוט שנו את תאריך ושעת העבירה.';
+  el('btnCancelEdit').style.display = 'none';
+  el('btnSave').textContent = 'שמירת דוח';
+}
+el('btnReset').addEventListener('click', resetForm);
+el('btnCancelEdit').addEventListener('click', ()=>{ resetForm(); switchTab('list'); });
+
+function editViolation(id){
+  const v = violations.find(x=>x.id===id);
+  if(!v) return;
+  editingViolationId = id;
+  pendingPhotos = [];
+  keptPhotoIds = [...(v.photoAssetIds||[])];
+  currentItems = JSON.parse(JSON.stringify(violationItems(v)));
+  el('fDate').value = v.violationDate || todayStr();
+  el('fTime').value = v.violationTime || nowTimeStr();
+  el('fContractor').value = v.contractorName || '';
+  el('fEmployee').value = v.employeeName || '';
+  el('fLocation').value = v.location || '';
+  renderCategoryDropdown();
+  el('fItemLabelCustom').value = '';
+  el('fItemLabelCustom').dataset.touched = '0';
+  el('fFine').value = '';
+  el('fFine').dataset.auto = '1';
+  el('fReporter').value = v.reporterName || '';
+  el('fActions').value = v.actionsTaken || '';
+  renderActionChips();
+  el('fNotes').value = v.notes || '';
+  renderReportItemsList();
+  renderPhotoRow();
+  el('formTitle').textContent = 'עריכת דוח עבירה';
+  el('formSub').textContent = 'מתבצע כעת עריכה של דוח קיים.';
+  el('btnCancelEdit').style.display = 'inline-flex';
+  el('btnSave').textContent = 'עדכון דוח';
+  switchTab('new');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+window.editViolation = editViolation;
+
+async function deleteViolation(id){
+  if(!confirm('למחוק את הדוח לצמיתות? לא ניתן לשחזר לאחר המחיקה.')) return;
+  const v = violations.find(x=>x.id===id);
+  violations = violations.filter(x=>x.id!==id);
+  saveViolationsLocal();
+  if(v && v.photoAssetIds){
+    for(const pid of v.photoAssetIds){ await deletePhotoBlob(pid); }
+  }
+  renderReportsList();
+  renderSummary();
+  updateStatsStrip();
+  toast('הדוח נמחק', 'ok');
+}
+window.deleteViolation = deleteViolation;
+
+/* ============================= LIST / FILTERS ============================= */
+function populateContractorDatalist(){
+  const names = Array.from(new Set(violations.map(v=>v.contractorName).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'he'));
+  el('contractorList').innerHTML = names.map(n=>`<option value="${escapeHtml(n)}"></option>`).join('');
+
+  const sel = el('filterContractor');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">כל הקבלנים</option>' + names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+  if(names.includes(prev)) sel.value = prev;
+}
+function populateMonthFilter(){
+  const months = Array.from(new Set(violations.map(v=>monthKeyOf(v.violationDate)).filter(Boolean))).sort().reverse();
+  const sel = el('filterMonth');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">כל החודשים</option>' + months.map(m=>`<option value="${m}">${monthLabel(m)}</option>`).join('');
+  if(months.includes(prev)) sel.value = prev;
+}
+function monthLabel(m){
+  if(!m) return '';
+  const [y,mo] = m.split('-');
+  const names = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  return `${names[parseInt(mo,10)-1]} ${y}`;
+}
+
+['filterMonth','filterContractor','filterCategory'].forEach(id=>{
+  el(id).addEventListener('input', renderReportsList);
+  el(id).addEventListener('change', renderReportsList);
+});
+
+function filteredViolations(){
+  const month = el('filterMonth').value;
+  const contractor = el('filterContractor').value.trim().toLowerCase();
+  const cat = el('filterCategory').value;
+  return violations.filter(v=>{
+    if(month && monthKeyOf(v.violationDate) !== month) return false;
+    if(contractor && (v.contractorName||'').trim().toLowerCase() !== contractor) return false;
+    if(cat && !violationItems(v).some(it=>it.categoryKey===cat)) return false;
+    return true;
+  });
+}
+
+function renderReportsList(){
+  const list = filteredViolations();
+  const body = el('listBody');
+  el('listEmpty').style.display = list.length ? 'none' : 'block';
+  body.innerHTML = list.map(v=>{
+    const items = violationItems(v);
+    const photos = v.photoAssetIds||[];
+    const thumb = photos.length
+      ? `<img class="thumb-mini" data-photo-id="${photos[0]}" onclick='openLightbox(${JSON.stringify(photos)},0)'>` + (photos.length>1 ? `<span class="cell-muted"> +${photos.length-1}</span>` : '')
+      : '<span class="cell-muted">—</span>';
+    const badgesHtml = items.map(it=>`<span class="badge ${severityBadgeClass(it.categoryKey)}" style="display:inline-flex;margin:0 0 3px;">${escapeHtml(it.categoryLabel||'')}</span>`).join('<br>');
+    const itemsHtml = items.map(it=>`<div>${escapeHtml(it.itemLabel||'')}</div>`).join('');
+    const totalFine = items.reduce((s,it)=>s+(Number(it.fineAmount)||0),0);
+    return `<tr>
+      <td>${escapeHtml(v.violationDate||'')}<br><span class="cell-muted">${escapeHtml(v.violationTime||'')}</span></td>
+      <td>${escapeHtml(v.contractorName||'')}</td>
+      <td>${escapeHtml(v.employeeName||'—')}</td>
+      <td>${badgesHtml}</td>
+      <td>${itemsHtml}</td>
+      <td>${escapeHtml(v.location||'')}</td>
+      <td class="cell-fine">${fmtMoney(totalFine)}</td>
+      <td>${thumb}</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editViolation('${v.id}')">עריכה</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportSinglePdfById('${v.id}')">PDF</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteViolation('${v.id}')">מחיקה</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  bindPhotoImages(body);
+}
+
+el('btnExportList').addEventListener('click', ()=> exportCsv(filteredViolations(), 'דוח-עבירות-בטיחות'));
+
+/* ============================= PRICE LIST EDITOR ============================= */
+let editorDirty = false;
+function markEditorDirty(){ editorDirty = true; }
+
+function renderPriceListEditor(){
+  const host = el('categoriesEditor');
+  const cats = editorPriceList?.categories || [];
+  host.innerHTML = cats.map((cat, ci)=>{
+    const itemsHtml = (cat.items||[]).map((item, ii)=>{
+      const isOcc = item.type === 'occurrence';
+      return `
+      <div class="item-editor">
+        <div class="item-editor-top">
+          <input type="text" value="${escapeHtml(item.label)}" oninput="onItemLabelChange(${ci},${ii},this.value)" placeholder="תיאור העבירה">
+          <select onchange="onItemTypeChange(${ci},${ii},this.value)">
+            <option value="range" ${!isOcc?'selected':''}>טווח קנס קבוע</option>
+            <option value="occurrence" ${isOcc?'selected':''}>קנס מדורג לפי הפרה חוזרת</option>
+          </select>
+          <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(${ci},${ii})">מחיקה</button>
+        </div>
+        ${isOcc ? `
+          <div class="field-group">
+            <label class="field">סכומים לפי סדר הפרות (מופרדים בפסיק, ₪)</label>
+            <input type="text" value="${(item.occurrenceAmounts||[]).join(', ')}" oninput="onOccurrenceAmountsChange(${ci},${ii},this.value)" placeholder="1000, 1500, 2000">
+          </div>
+          <div class="field-group">
+            <label class="field">הערה (למשל: מה קורה מההפרה הרביעית ואילך)</label>
+            <textarea oninput="onOccurrenceNoteChange(${ci},${ii},this.value)" placeholder="הערה חופשית...">${escapeHtml(item.occurrenceNote||'')}</textarea>
+          </div>
+        ` : `
+          <div class="item-fields">
+            <div class="field-group">
+              <label class="field">קנס מינימלי (₪)</label>
+              <input type="number" min="0" value="${item.min ?? 0}" oninput="onItemMinChange(${ci},${ii},this.value)">
+            </div>
+            <div class="field-group">
+              <label class="field">קנס מקסימלי (₪)</label>
+              <input type="number" min="0" value="${item.max ?? 0}" oninput="onItemMaxChange(${ci},${ii},this.value)">
+            </div>
+          </div>
+        `}
+      </div>`;
+    }).join('');
+
+    return `
+    <div class="cat-editor">
+      <div class="cat-editor-head">
+        <input type="color" class="cat-color-dot" value="${cat.color||'#999999'}" oninput="onCatColorChange(${ci},this.value)">
+        <input type="text" value="${escapeHtml(cat.label)}" oninput="onCatLabelChange(${ci},this.value)">
+        <input type="text" value="${escapeHtml(cat.subtitle||'')}" oninput="onCatSubtitleChange(${ci},this.value)" placeholder="תת-כותרת (לא חובה)" style="flex:1;min-width:140px;">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="addItem(${ci})">+ עבירה</button>
+        <button type="button" class="btn btn-danger btn-sm" onclick="removeCategory(${ci})">מחיקת קטגוריה</button>
+      </div>
+      <div class="cat-editor-body">${itemsHtml || '<p class="hint">אין עבירות בקטגוריה זו עדיין.</p>'}</div>
+    </div>`;
+  }).join('');
+}
+
+function onCatLabelChange(ci,val){ editorPriceList.categories[ci].label = val; markEditorDirty(); }
+function onCatSubtitleChange(ci,val){ editorPriceList.categories[ci].subtitle = val; markEditorDirty(); }
+function onCatColorChange(ci,val){ editorPriceList.categories[ci].color = val; markEditorDirty(); }
+function onItemLabelChange(ci,ii,val){ editorPriceList.categories[ci].items[ii].label = val; markEditorDirty(); }
+function onItemMinChange(ci,ii,val){ editorPriceList.categories[ci].items[ii].min = Number(val)||0; markEditorDirty(); }
+function onItemMaxChange(ci,ii,val){ editorPriceList.categories[ci].items[ii].max = Number(val)||0; markEditorDirty(); }
+function onOccurrenceAmountsChange(ci,ii,val){
+  const arr = val.split(',').map(s=>Number(s.trim())).filter(n=>!isNaN(n));
+  editorPriceList.categories[ci].items[ii].occurrenceAmounts = arr;
+  markEditorDirty();
+}
+function onOccurrenceNoteChange(ci,ii,val){ editorPriceList.categories[ci].items[ii].occurrenceNote = val; markEditorDirty(); }
+function onItemTypeChange(ci,ii,val){
+  const item = editorPriceList.categories[ci].items[ii];
+  item.type = val;
+  if(val==='occurrence' && !item.occurrenceAmounts) item.occurrenceAmounts = [item.min || 1000];
+  if(val==='range' && (item.min===undefined)) { item.min = 0; item.max = 0; }
+  markEditorDirty();
+  renderPriceListEditor();
+}
+function addItem(ci){
+  editorPriceList.categories[ci].items.push({ key: genKey('item'), label: 'עבירה חדשה', type: 'range', min: 100, max: 500 });
+  markEditorDirty();
+  renderPriceListEditor();
+}
+function removeItem(ci,ii){
+  if(!confirm('למחוק את סוג העבירה הזה מהמחירון?')) return;
+  editorPriceList.categories[ci].items.splice(ii,1);
+  markEditorDirty();
+  renderPriceListEditor();
+}
+function removeCategory(ci){
+  if(!confirm('למחוק את הקטגוריה כולה, כולל כל העבירות שבה?')) return;
+  editorPriceList.categories.splice(ci,1);
+  markEditorDirty();
+  renderPriceListEditor();
+}
+el('btnAddCategory').addEventListener('click', ()=>{
+  editorPriceList.categories.push({ key: genKey('cat'), label: 'קטגוריה חדשה', subtitle:'', color:'#5C6A7A', items: [] });
+  markEditorDirty();
+  renderPriceListEditor();
+});
+window.onCatLabelChange = onCatLabelChange;
+window.onCatSubtitleChange = onCatSubtitleChange;
+window.onCatColorChange = onCatColorChange;
+window.onItemLabelChange = onItemLabelChange;
+window.onItemMinChange = onItemMinChange;
+window.onItemMaxChange = onItemMaxChange;
+window.onOccurrenceAmountsChange = onOccurrenceAmountsChange;
+window.onOccurrenceNoteChange = onOccurrenceNoteChange;
+window.onItemTypeChange = onItemTypeChange;
+window.addItem = addItem;
+window.removeItem = removeItem;
+window.removeCategory = removeCategory;
+
+el('btnSavePriceList').addEventListener('click', ()=>{
+  try{
+    priceList = JSON.parse(JSON.stringify(editorPriceList));
+    savePriceListLocal();
+    editorDirty = false;
+    renderCategoryDropdown();
+    renderReportsList();
+    renderSummary();
+    toast('המחירון נשמר בהצלחה', 'ok');
+  }catch(err){
+    console.error(err);
+    toast('שגיאה בשמירת המחירון', 'err');
+  }
+});
+el('btnResetPriceList').addEventListener('click', ()=>{
+  if(!confirm('לשחזר את המחירון לברירת המחדל? כל השינויים שבוצעו יימחקו.')) return;
+  editorPriceList = JSON.parse(JSON.stringify(DEFAULT_PRICE_LIST));
+  markEditorDirty();
+  renderPriceListEditor();
+});
+
+/* ============================= MONTHLY SUMMARY ============================= */
+el('summaryMonth').value = new Date().toISOString().slice(0,7);
+el('summaryMonth').addEventListener('change', renderSummary);
+
+function renderSummary(){
+  const month = el('summaryMonth').value;
+  const list = violations.filter(v=> monthKeyOf(v.violationDate) === month);
+  const body = el('summaryBody');
+  el('summaryEmpty').style.display = list.length ? 'none' : 'block';
+
+  const byContractor = {};
+  for(const v of list){
+    const name = v.contractorName || 'לא ידוע';
+    if(!byContractor[name]) byContractor[name] = { light:0, medium:0, severe:0, total:0, fines:0 };
+    const row = byContractor[name];
+    for(const it of violationItems(v)){
+      if(it.categoryKey==='light') row.light++;
+      else if(it.categoryKey==='medium') row.medium++;
+      else if(it.categoryKey==='severe') row.severe++;
+      row.total++;
+      row.fines += Number(it.fineAmount)||0;
+    }
+  }
+  const rows = Object.entries(byContractor).sort((a,b)=> b[1].fines - a[1].fines);
+  const maxFine = Math.max(1, ...rows.map(r=>r[1].fines));
+
+  body.innerHTML = rows.map(([name, r])=>`
+    <tr>
+      <td>${escapeHtml(name)}</td>
+      <td>${r.light || '—'}</td>
+      <td>${r.medium || '—'}</td>
+      <td>${r.severe || '—'}</td>
+      <td>${r.total}</td>
+      <td class="cell-fine">${fmtMoney(r.fines)}</td>
+      <td>
+        <div class="summary-bar-track"><div class="summary-bar-fill" style="width:${Math.round(r.fines/maxFine*100)}%"></div></div>
+      </td>
+    </tr>`).join('');
+
+  if(rows.length){
+    const grandTotal = rows.reduce((s,r)=> s + r[1].fines, 0);
+    const grandCount = rows.reduce((s,r)=> s + r[1].total, 0);
+    body.innerHTML += `
+      <tr style="font-weight:800;background:var(--surface-2);">
+        <td>סה"כ</td><td></td><td></td><td></td>
+        <td>${grandCount}</td>
+        <td class="cell-fine">${fmtMoney(grandTotal)}</td>
+        <td></td>
+      </tr>`;
+  }
+}
+
+el('btnExportSummary').addEventListener('click', ()=>{
+  const month = el('summaryMonth').value;
+  const list = violations.filter(v=> monthKeyOf(v.violationDate) === month);
+  const byContractor = {};
+  for(const v of list){
+    const name = v.contractorName || 'לא ידוע';
+    if(!byContractor[name]) byContractor[name] = { light:0, medium:0, severe:0, total:0, fines:0 };
+    const row = byContractor[name];
+    for(const it of violationItems(v)){
+      if(it.categoryKey==='light') row.light++;
+      else if(it.categoryKey==='medium') row.medium++;
+      else if(it.categoryKey==='severe') row.severe++;
+      row.total++;
+      row.fines += Number(it.fineAmount)||0;
+    }
+  }
+  const rows = Object.entries(byContractor).sort((a,b)=> b[1].fines - a[1].fines);
+  let csv = 'קבלן,קלות,בינוניות,חמורות,סה"כ עבירות,סה"כ לתשלום (₪)\n';
+  for(const [name, r] of rows){
+    csv += `"${name.replace(/"/g,'""')}",${r.light},${r.medium},${r.severe},${r.total},${r.fines}\n`;
+  }
+  triggerDownload(`סיכום-חודשי-${month}.csv`, '\uFEFF'+csv, 'text/csv;charset=utf-8');
+});
+
+/* ============================= CSV EXPORT ============================= */
+function triggerDownload(filename, content, mime){
+  const blob = content instanceof Blob ? content : new Blob([content], { type: mime||'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+function exportCsv(list, baseName){
+  let csv = 'תאריך,שעה,קבלן,עובד,חומרה,סוג עבירה,מיקום,קנס (₪),הערות\n';
+  for(const v of list){
+    for(const it of violationItems(v)){
+      const cells = [
+        v.violationDate||'', v.violationTime||'', v.contractorName||'', v.employeeName||'',
+        it.categoryLabel||it.categoryKey||'', it.itemLabel||'', v.location||'', it.fineAmount||0, v.notes||''
+      ].map(c=> `"${String(c).replace(/"/g,'""')}"`);
+      csv += cells.join(',') + '\n';
+    }
+  }
+  triggerDownload(`${baseName}-${new Date().toISOString().slice(0,10)}.csv`, '\uFEFF'+csv, 'text/csv;charset=utf-8');
+}
+
+/* ============================= LIGHTBOX ============================= */
+function openLightbox(ids, idx){
+  lightboxList = ids; lightboxIndex = idx;
+  renderLightbox();
+}
+function openLightboxFromCurrent(idx){ openLightbox(keptPhotoIds, idx); }
+window.openLightbox = openLightbox;
+window.openLightboxFromCurrent = openLightboxFromCurrent;
+
+function renderLightbox(){
+  const host = el('modalHost');
+  const id = lightboxList[lightboxIndex];
+  host.innerHTML = `
+    <div class="modal-backdrop" onclick="closeLightboxIfBackdrop(event)">
+      <button class="modal-close" onclick="closeLightbox()">✕</button>
+      ${lightboxList.length>1 ? `<button class="modal-nav prev" onclick="lightboxStep(1)">›</button>` : ''}
+      <img class="modal-img" data-photo-id="${id}">
+      ${lightboxList.length>1 ? `<button class="modal-nav next" onclick="lightboxStep(-1)">‹</button>` : ''}
+    </div>`;
+  bindPhotoImages(host);
+}
+function lightboxStep(dir){
+  lightboxIndex = (lightboxIndex + dir + lightboxList.length) % lightboxList.length;
+  renderLightbox();
+}
+function closeLightbox(){ el('modalHost').innerHTML = ''; }
+function closeLightboxIfBackdrop(e){ if(e.target.classList.contains('modal-backdrop')) closeLightbox(); }
+window.lightboxStep = lightboxStep;
+window.closeLightbox = closeLightbox;
+window.closeLightboxIfBackdrop = closeLightboxIfBackdrop;
+
+/* ============================= PDF TICKET EXPORT ============================= */
+function ticketNumberFor(v){ return 'OMR-' + String(v.id||'').slice(-6).toUpperCase(); }
+
+function ticketHtml(v, photoDataUrl){
+  const items = violationItems(v);
+  const worstKey = items.some(it=>it.categoryKey==='severe') ? 'severe' : (items.some(it=>it.categoryKey==='medium') ? 'medium' : 'light');
+  const sevColor = worstKey==='severe' ? '#C0392B' : (worstKey==='medium' ? '#E8590C' : '#C99A00');
+  const totalFine = items.reduce((s,it)=>s+(Number(it.fineAmount)||0),0);
+  const itemsRows = items.map(it=>{
+    const c = it.categoryKey==='severe' ? '#C0392B' : (it.categoryKey==='medium' ? '#E8590C' : '#C99A00');
+    return `<tr>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;white-space:nowrap;"><span style="display:inline-block;padding:2px 9px;border-radius:999px;background:${c}22;color:${c};font-size:11px;font-weight:700;">${escapeHtml(it.categoryLabel||'')}</span></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:13.5px;">${escapeHtml(it.itemLabel||'')}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;font-family:monospace;font-weight:700;text-align:left;white-space:nowrap;">₪${(Number(it.fineAmount)||0).toLocaleString('he-IL')}</td>
+    </tr>`;
+  }).join('');
+  const photo = photoDataUrl
+    ? `<img src="${photoDataUrl}" style="width:150px;height:150px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">`
+    : `<div style="width:150px;height:150px;border:1.5px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;text-align:center;">אין תמונה מצורפת</div>`;
+  return `
+  <div style="width:794px;background:#ffffff;font-family:'Heebo',system-ui,sans-serif;direction:rtl;color:#1B2430;border:3px solid ${sevColor};border-radius:14px;overflow:hidden;">
+    <div style="background:${sevColor};color:#fff;padding:20px 30px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:23px;font-weight:800;">דוח עבירת בטיחות</div>
+        <div style="font-size:13px;opacity:.9;margin-top:2px;">בית מכבי רחובות — עומר הנדסה</div>
+      </div>
+      <div style="text-align:left;">
+        <div style="font-size:12px;opacity:.85;">מס׳ דוח</div>
+        <div style="font-size:21px;font-weight:800;font-family:monospace;">${ticketNumberFor(v)}</div>
+      </div>
+    </div>
+    <div style="padding:26px 30px;">
+      <div style="display:flex;gap:26px;">
+        <table style="flex:1;border-collapse:collapse;font-size:14.5px;">
+          <tr><td style="padding:6px 0;color:#666;width:120px;">תאריך העבירה</td><td style="font-weight:700;">${escapeHtml(v.violationDate||'')}</td></tr>
+          <tr><td style="padding:6px 0;color:#666;">שעת העבירה</td><td style="font-weight:700;">${escapeHtml(v.violationTime||'')}</td></tr>
+          <tr><td style="padding:6px 0;color:#666;">מיקום באתר</td><td style="font-weight:700;">${escapeHtml(v.location||'')}</td></tr>
+          <tr><td style="padding:6px 0;color:#666;">קבלן / קבלן משנה</td><td style="font-weight:700;">${escapeHtml(v.contractorName||'')}</td></tr>
+          <tr><td style="padding:6px 0;color:#666;">עובד מעורב</td><td style="font-weight:700;">${escapeHtml(v.employeeName||'—')}</td></tr>
+          <tr><td style="padding:6px 0;color:#666;">דווח על ידי</td><td style="font-weight:700;">${escapeHtml(v.reporterName||'—')}</td></tr>
+        </table>
+        <div>${photo}</div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <div style="font-size:12px;color:#666;margin-bottom:6px;">עבירות שתועדו בדוח זה (${items.length})</div>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #eee;border-radius:8px;overflow:hidden;">
+          ${itemsRows}
+        </table>
+      </div>
+
+      <div style="display:flex;gap:18px;margin-top:18px;align-items:stretch;">
+        <div style="flex:1;">
+          <div style="font-size:12px;color:#666;margin-bottom:4px;">פעולות שננקטו</div>
+          <div style="font-size:14px;min-height:34px;padding:10px;border:1px solid #eee;border-radius:8px;">${escapeHtml(v.actionsTaken || '—')}</div>
+          <div style="font-size:12px;color:#666;margin:12px 0 4px;">הערות</div>
+          <div style="font-size:14px;min-height:34px;padding:10px;border:1px solid #eee;border-radius:8px;">${escapeHtml(v.notes || '—')}</div>
+        </div>
+        <div style="width:170px;border:2px solid ${sevColor};border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;flex-shrink:0;">
+          <div style="font-size:12px;color:#666;">סה"כ לתשלום</div>
+          <div style="font-size:28px;font-weight:800;color:${sevColor};font-family:monospace;">₪${totalFine.toLocaleString('he-IL')}</div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;margin-top:26px;padding-top:14px;border-top:1px dashed #ccc;font-size:12px;color:#666;">
+        <div>תאריך הפקת הדוח: ${new Date().toLocaleDateString('he-IL')}</div>
+        <div>חתימת מנהל עבודה: ______________________</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function renderTicketCanvas(v){
+  const photoDataUrl = (v.photoAssetIds && v.photoAssetIds[0]) ? await getPhotoDataUrl(v.photoAssetIds[0]) : null;
+  const host = el('pdfRenderHost');
+  const container = document.createElement('div');
+  container.innerHTML = ticketHtml(v, photoDataUrl);
+  host.appendChild(container);
+  const imgs = container.querySelectorAll('img');
+  await Promise.all(Array.from(imgs).map(img => img.complete ? Promise.resolve() : new Promise(res=>{ img.onload=res; img.onerror=res; })));
+  const canvas = await html2canvas(container.firstElementChild, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+  host.removeChild(container);
+  return canvas;
+}
+
+function addCanvasToPdfPage(doc, canvas, isFirst){
+  if(!isFirst) doc.addPage();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 24;
+  const maxWidth = pageWidth - margin*2;
+  const maxHeight = pageHeight - margin*2;
+  let imgWidth = maxWidth;
+  let imgHeight = canvas.height * (imgWidth / canvas.width);
+  if(imgHeight > maxHeight){
+    imgHeight = maxHeight;
+    imgWidth = canvas.width * (imgHeight / canvas.height);
+  }
+  const x = (pageWidth - imgWidth)/2;
+  const y = margin;
+  doc.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, imgWidth, imgHeight);
+}
+
+function pdfLibsReady(){
+  return typeof window.jspdf !== 'undefined' && typeof window.html2canvas !== 'undefined';
+}
+
+async function exportSinglePdfById(id){
+  const v = violations.find(x=>x.id===id);
+  if(!v) return;
+  await exportViolationsToPdf([v], `דוח-${ticketNumberFor(v)}`);
+}
+window.exportSinglePdfById = exportSinglePdfById;
+
+async function exportViolationsToPdf(list, filenameBase){
+  if(!pdfLibsReady()){ toast('ספריית ה-PDF עדיין נטענת, נסו שוב בעוד רגע', 'err'); return; }
+  if(!list.length){ toast('אין דוחות לייצוא', 'err'); return; }
+
+  toast('מכין קובץ PDF...', 'ok');
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    for(let i=0;i<list.length;i++){
+      const canvas = await renderTicketCanvas(list[i]);
+      addCanvasToPdfPage(doc, canvas, i===0);
+    }
+    const blob = doc.output('blob');
+    triggerDownload(`${filenameBase}.pdf`, blob);
+  }catch(err){
+    console.error(err);
+    toast('שגיאה ביצירת קובץ ה-PDF', 'err');
+  }
+}
+
+el('btnExportListPdf').addEventListener('click', async ()=>{
+  const list = filteredViolations();
+  const btn = el('btnExportListPdf');
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = 'מייצא...';
+  await exportViolationsToPdf(list, `דוחות-בטיחות-${new Date().toISOString().slice(0,10)}`);
+  btn.disabled = false;
+  btn.textContent = orig;
+});
+
+/* ============================= BACKUP / DATA TRANSFER ============================= */
+async function exportAllDataJson(){
+  toast('מכין קובץ גיבוי...', 'ok');
+  try{
+    const photoIds = new Set();
+    violations.forEach(v=> (v.photoAssetIds||[]).forEach(id=>photoIds.add(id)));
+    const photos = {};
+    for(const id of photoIds){
+      const dataUrl = await getPhotoDataUrl(id);
+      if(dataUrl) photos[id] = dataUrl;
+    }
+    const bundle = {
+      exportedAt: new Date().toISOString(),
+      violations: violations,
+      priceList: priceList,
+      photos: photos
+    };
+    triggerDownload(`גיבוי-בטיחות-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(bundle));
+    toast('קובץ הגיבוי הופק בהצלחה', 'ok');
+  }catch(err){
+    console.error(err);
+    toast('שגיאה בהפקת קובץ הגיבוי', 'err');
+  }
+}
+el('btnExportBackup').addEventListener('click', exportAllDataJson);
+
+el('importFile').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  el('importStatus').textContent = 'קורא קובץ...';
+  try{
+    const text = await file.text();
+    const bundle = JSON.parse(text);
+    const incoming = Array.isArray(bundle.violations) ? bundle.violations : [];
+    const existingIds = new Set(violations.map(v=>v.id));
+    let added = 0;
+    for(const v of incoming){
+      if(v && v.id && !existingIds.has(v.id)){
+        violations.push(v);
+        existingIds.add(v.id);
+        added++;
+      }
+    }
+    const photos = bundle.photos || {};
+    let photosImported = 0;
+    for(const [pid, dataUrl] of Object.entries(photos)){
+      try{
+        const resp = await fetch(dataUrl);
+        const blob = await resp.blob();
+        await savePhotoBlob(pid, blob);
+        photosImported++;
+      }catch(e){ /* skip a single bad photo, continue */ }
+    }
+    saveViolationsLocal();
+    violations.sort((a,b)=> (b.violationDateTime||'').localeCompare(a.violationDateTime||''));
+    renderReportsList();
+    renderSummary();
+    updateStatsStrip();
+    populateContractorDatalist();
+    populateMonthFilter();
+    el('importStatus').textContent = `יובאו ${added} דוחות חדשים ו-${photosImported} תמונות. (המחירון של המכשיר הזה לא שונה.)`;
+    toast('הייבוא הושלם בהצלחה', 'ok');
+  }catch(err){
+    console.error(err);
+    el('importStatus').textContent = 'שגיאה בקריאת קובץ הגיבוי — ודאו שזהו קובץ JSON תקין שיוצא מהכלי הזה.';
+    toast('שגיאה בייבוא הקובץ', 'err');
+  }
+  e.target.value = '';
+});
+
+/* ============================= BOOT ============================= */
+function boot(){
+  el('fDate').value = todayStr();
+  el('fTime').value = nowTimeStr();
+  el('fFine').dataset.auto = '1';
+  renderActionChips();
+  try{
+    const lastReporter = localStorage.getItem('safety_last_reporter');
+    if(lastReporter) el('fReporter').value = lastReporter;
+  }catch(e){}
+  initLocalData();
+}
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}
+</script>
+</body>
+</html>
